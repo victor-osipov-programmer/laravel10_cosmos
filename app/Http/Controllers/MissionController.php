@@ -17,7 +17,7 @@ class MissionController extends Controller
     {
         $missions = Mission::with(['crew'])->get();
 
-        return $missions->map(fn ($mission) => [
+        return $missions->map(fn($mission) => [
             "mission" => [
                 "name" => $mission->mission__name,
                 "launch_details" => [
@@ -43,7 +43,7 @@ class MissionController extends Controller
                 "spacecraft" => [
                     "command_module" => $mission->mission__spacecraft__command_module,
                     "lunar_module" => $mission->mission__spacecraft__lunar_module,
-                    "crew" => $mission->crew->map(fn ($crew) => [
+                    "crew" => $mission->crew->map(fn($crew) => [
                         'name' => $crew->name,
                         'role' => $crew->role
                     ])
@@ -67,14 +67,14 @@ class MissionController extends Controller
             unset($data[$key]);
         }
 
-        DB::transaction(function () use($data, $crew) {
+        DB::transaction(function () use ($data, $crew) {
             $new_mission = Mission::create($data);
-            Crew::insert(array_map(fn ($item) => [
+            Crew::insert(array_map(fn($item) => [
                 ...$item,
                 'mission_id' => $new_mission->id
             ], $crew));
         });
-        
+
         return response([
             'data' => [
                 'code' => 201,
@@ -96,7 +96,32 @@ class MissionController extends Controller
      */
     public function update(UpdateMissionRequest $request, Mission $mission)
     {
-        //
+        $data = $request->validated();
+        $crew = $data['mission']['spacecraft']['crew'];
+        unset($data['mission']['spacecraft']['crew']);
+        $data = collect($data)->dot()->all();
+
+        foreach ($data as $key => $value) {
+            $data[str_replace('.', '__', $key)] = $value;
+            unset($data[$key]);
+        }
+
+        DB::transaction(function () use ($data, $crew, $mission) {
+            $mission->update($data);
+            $mission->crew()->delete();
+            Crew::insert(array_map(fn($item) => [
+                ...$item,
+                'mission_id' => $mission->id
+            ], $crew));
+        });
+
+
+        return [
+            'data' => [
+                'code' => 200,
+                'message' => 'Миссия обновлена'
+            ]
+        ];
     }
 
     /**
@@ -104,6 +129,9 @@ class MissionController extends Controller
      */
     public function destroy(Mission $mission)
     {
-        //
+        $mission->crew()->delete();
+        $mission->delete();
+
+        return response()->noContent();
     }
 }

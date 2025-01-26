@@ -6,6 +6,7 @@ use App\Models\Mission;
 use App\Http\Requests\StoreMissionRequest;
 use App\Http\Requests\UpdateMissionRequest;
 use App\Models\Crew;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MissionController extends Controller
@@ -133,5 +134,30 @@ class MissionController extends Controller
         $mission->delete();
 
         return response()->noContent();
+    }
+
+
+    function search(Request $request) {
+        $data = $request->validate(['query' => ['required']]);
+        $query = $data['query'];
+
+        $missions = Mission::where('mission__name', 'like', "%$query%")->get();
+        $missions2 = Crew::with(['mission'])->where('name', 'like', "%$query%")->get()->pluck('mission');
+
+        $missions = collect([...$missions, ...$missions2])->unique();
+        
+        return [
+            'data' => $missions->map(fn ($mission) => [
+                'type' => 'Миссия',
+                'name' => $mission->mission__name,
+                'launch_date' => $mission->mission__launch_details__launch_date,
+                'launch_date' => $mission->mission__landing_details__landing_date,
+                'launch_date' => $mission->crew->map(fn ($item) => [
+                    'name' => $item->name,
+                    'role' => $item->role,
+                ]),
+                'landing_site' => $mission->mission__landing_details__landing_site__name
+            ])
+        ];
     }
 }

@@ -23,4 +23,5 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/space-flights', [FlightController::class, 'store']);
     Route::get('/space-flights', [FlightController::class, 'index']);
     Route::post('/book-flight', [FlightController::class, 'booking']);
+    Route::get('/search', [MissionController::class, 'search']);
 });

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Flight;
 use App\Http\Requests\StoreFlightRequest;
 use App\Http\Requests\UpdateFlightRequest;
+use App\Models\Booking;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class FlightController extends Controller
 {
@@ -13,6 +16,77 @@ class FlightController extends Controller
      */
     public function index()
     {
+        $flights = Flight::select(['flight_number', 'destination', 'launch_date', 'seats_available'])->get();
+
+        return [
+            'data' => $flights
+        ];
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreFlightRequest $request)
+    {
+        $data = $request->validated();
+
+        Flight::create($data);
+
+        return response([
+            'data' => [
+                'code' => 201,
+                'message' => 'Космический полет создан',
+            ]
+        ], 201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Flight $flight)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateFlightRequest $request, Flight $flight)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Flight $flight)
+    {
+        //
+    }
+
+    function booking(Request $request)
+    {
+        $data = $request->validate([
+            'flight_number' => ['required', Rule::exists('flights')]
+        ]);
+        $flight = Flight::where('flight_number', $data['flight_number'])->first();
+
+        $user = $request->user();
+        Booking::create([
+            'flight_id' => $flight->id,
+            'user_id' => $user->id,
+        ]);
+
+        return response([
+            'data' => [
+                'code' => 201,
+                'message' => 'Рейс забронирован',
+            ]
+        ]);
+    }
+
+
+    function static_index() {
         return [
             "data" => [
                 "name" => "Аполлон-11",
@@ -49,37 +123,5 @@ class FlightController extends Controller
                 ]
             ]
         ];
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreFlightRequest $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Flight $flight)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateFlightRequest $request, Flight $flight)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Flight $flight)
-    {
-        //
     }
 }

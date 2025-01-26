@@ -14,10 +14,13 @@ Route::post('/authorization', [AuthController::class, 'authorization']);
 Route::middleware(['auth'])->group(function () {
     Route::get('/logout', [AuthController::class, 'logout']);
     Route::get('/api/gagarin-flight', [UserControler::class, 'gagarin_flight']);
-    Route::get('/flight', [FlightController::class, 'index']);
+    Route::get('/flight', [FlightController::class, 'static_index']);
     Route::get('/lunar-missions', [MissionController::class, 'index']);
     Route::post('/lunar-missions', [MissionController::class, 'store']);
     Route::delete('/lunar-missions/{mission}', [MissionController::class, 'destroy']);
     Route::patch('/lunar-missions/{mission}', [MissionController::class, 'update']);
     Route::post('/lunar-watermark', [ImageController::class, 'lunar_watermark']);
+    Route::post('/space-flights', [FlightController::class, 'store']);
+    Route::get('/space-flights', [FlightController::class, 'index']);
+    Route::post('/book-flight', [FlightController::class, 'booking']);
 });

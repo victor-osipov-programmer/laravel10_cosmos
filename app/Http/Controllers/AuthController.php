@@ -32,7 +32,7 @@ class AuthController extends Controller
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->first_name . ' ' . $user->last_name . ' ' . $user->patronymic,
-                    'bith_date' => $user->birth_date,
+                    'birth_date' => $user->birth_date,
                     'email' => $user->email
                 ],
                 'token' => $new_token

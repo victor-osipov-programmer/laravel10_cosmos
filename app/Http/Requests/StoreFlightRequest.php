@@ -11,7 +11,7 @@ class StoreFlightRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,10 @@ class StoreFlightRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'flight_number' => ['required', 'string'],
+            'destination' => ['required', 'string'],
+            'launch_date' => ['required', 'date_format:Y-m-d'],
+            'seats_available' => ['required', 'integer'],
         ];
     }
 }
